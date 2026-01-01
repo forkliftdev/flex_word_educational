@@ -246,7 +246,11 @@ class _GameScreenState extends State<GameScreen> {
             ),
             ListTile(leading: const Icon(Icons.info_outline), title: const Text('About'), onTap: () {Navigator.pop(context); // Close the drawer first
                 context.push('/about');},), // Go to the page}),
-            ListTile(leading: const Icon(Icons.people_outline), title: const Text('For Teachers'), onTap: () { }),
+            ListTile(leading: const Icon(Icons.people_outline), title: const Text('For Teachers'), onTap: () {
+                Navigator.pop(context); // Close drawer
+                context.push('/teacher'); // Go to dashboard
+              },
+            ),
             ListTile(leading: const Icon(Icons.list_alt), title: const Text('Vocabulary List'), onTap: () { }),
           ],
         ),

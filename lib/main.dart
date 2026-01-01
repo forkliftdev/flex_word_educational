@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'constants/app_colors.dart';
 import 'screens/game_screen.dart';
-import 'screens/about_screen.dart'; // NEW IMPORT
+import 'screens/about_screen.dart';
+import 'screens/teacher_screen.dart'; // NEW IMPORT (We will create this next)
 
 void main() {
   runApp(const FlexWordApp());
@@ -19,26 +20,38 @@ class FlexWordApp extends StatelessWidget {
         GoRoute(
           path: '/',
           builder: (context, state) {
-            final String? rawList = state.uri.queryParameters['list'];
             List<String>? teacherList;
 
-            if (rawList != null && rawList.isNotEmpty) {
-              teacherList = rawList
-                  .split(',') 
-                  .map((e) => e.trim().toUpperCase()) 
-                  .where((e) => e.length == 3) 
-                  .toList();
+            // CHECK 1: Did we come from the Teacher Dashboard? (Internal Data)
+            if (state.extra != null && state.extra is List<String>) {
+              teacherList = state.extra as List<String>;
+            } 
+            // CHECK 2: Did we come from a URL Link? (External Data)
+            else {
+              final String? rawList = state.uri.queryParameters['list'];
+              if (rawList != null && rawList.isNotEmpty) {
+                teacherList = rawList
+                    .split(',') 
+                    .map((e) => e.trim().toUpperCase()) 
+                    .where((e) => e.length == 3) 
+                    .toList();
+              }
             }
+
             return GameScreen(teacherList: teacherList);
           },
         ),
 
-        // ROUTE 2: About Page (NEW!)
+        // ROUTE 2: About Page
         GoRoute(
           path: '/about',
-          builder: (context, state) {
-            return const AboutScreen();
-          },
+          builder: (context, state) => const AboutScreen(),
+        ),
+
+        // ROUTE 3: Teacher Dashboard (NEW!)
+        GoRoute(
+          path: '/teacher',
+          builder: (context, state) => const TeacherScreen(),
         ),
       ],
     );
