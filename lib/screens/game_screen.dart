@@ -18,7 +18,12 @@ class _GameScreenState extends State<GameScreen> {
   String targetWord = ""; 
   List<String> pastGuesses = []; 
   Map<String, TileStatus> keyStatuses = {};
+  
+  // STATES
+  bool isGameWon = false; 
   bool showWinAnimation = false;
+  bool showFeedback = false;
+  String feedbackMessage = "";
 
   @override
   void initState() {
@@ -26,6 +31,7 @@ class _GameScreenState extends State<GameScreen> {
     _startNewGame();
   }
 
+  // LOGIC: The actual reset mechanism
   void _startNewGame() {
     setState(() {
       final randomIndex = Random().nextInt(GameWords.allTargets.length);
@@ -34,12 +40,55 @@ class _GameScreenState extends State<GameScreen> {
       currentGuess = "";
       pastGuesses = [];
       keyStatuses = {}; 
-      showWinAnimation = false; 
+      
+      showWinAnimation = false;
+      showFeedback = false; 
+      isGameWon = false; 
+      
       print("TARGET WORD IS: $targetWord");
     });
   }
 
-  // LOGIC: Two-Pass Grading System
+  // NEW: The "Bouncer" that decides if we need a confirmation dialog
+  void _onNewGameTap() {
+    // 1. If they already won, OR haven't guessed anything yet, just restart immediately.
+    if (isGameWon || pastGuesses.isEmpty) {
+      _startNewGame();
+      return;
+    }
+
+    // 2. Otherwise, they are in the middle of a game. Confirm!
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Start New Game?", style: TextStyle(color: AppColors.techBlue, fontWeight: FontWeight.bold)),
+          content: const Text("You will lose your current guesses."),
+          actions: [
+            // The "No" button (Cancel)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), 
+              child: const Text("Keep Playing", style: TextStyle(color: Colors.grey, fontSize: 16)),
+            ),
+            // The "Yes" button (Action)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.cautionAmber,
+                foregroundColor: AppColors.textBlack,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                _startNewGame(); // Actually reset
+              }, 
+              child: const Text("Start Over", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _checkGuess() {
     List<TileStatus> statuses = _getStatusesForGuess(currentGuess, targetWord);
 
@@ -58,6 +107,7 @@ class _GameScreenState extends State<GameScreen> {
     
     if (currentGuess == targetWord) {
       print("WINNER!"); 
+      isGameWon = true;
       _triggerWinAnimation();
     }
     
@@ -69,7 +119,6 @@ class _GameScreenState extends State<GameScreen> {
     List<String> targetChars = target.split('');
     List<String> guessChars = guess.split('');
 
-    // PASS 1: Exact Matches
     for (int i = 0; i < 3; i++) {
       if (guessChars[i] == targetChars[i]) {
         results[i] = TileStatus.correct;
@@ -78,17 +127,14 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // PASS 2: Close Matches
     for (int i = 0; i < 3; i++) {
       if (guessChars[i] == '#') continue; 
-
       int indexInTarget = targetChars.indexOf(guessChars[i]);
       if (indexInTarget != -1) {
         results[i] = TileStatus.close;
         targetChars[indexInTarget] = ''; 
       }
     }
-
     return results;
   }
 
@@ -105,18 +151,35 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _triggerFeedback(String message) {
+    setState(() {
+      feedbackMessage = message;
+      showFeedback = true;
+    });
+    Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          showFeedback = false;
+        });
+      }
+    });
+  }
+
   void _onKeyTapped(String key) {
-    if (showWinAnimation) return;
+    if (showWinAnimation || isGameWon || showFeedback) return;
 
     setState(() {
       if (key == 'ENTER') {
         if (currentGuess.contains('_')) {
-          print("Fill in the blanks!");
-        } else if (currentGuess.length < 3) {
-          print("Too short!");
-        } else if (!GameWords.validGuesses.contains(currentGuess)) {
-           print("Not a real word!"); 
-        } else {
+          _triggerFeedback("Fill Blanks!"); 
+        } 
+        else if (currentGuess.length < 3) {
+           _triggerFeedback("Too Short!"); 
+        } 
+        else if (!GameWords.validGuesses.contains(currentGuess)) {
+           _triggerFeedback("Not in Word List"); 
+        } 
+        else {
           _checkGuess(); 
         }
       } else if (key == 'DEL') {
@@ -131,7 +194,6 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Split Logic for 2-Column Layout
     int splitIndex = 8;
     List<String> leftColumn = [];
     List<String> rightColumn = [];
@@ -148,9 +210,7 @@ class _GameScreenState extends State<GameScreen> {
         title: const Text("FlexWord Educational", style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.techBlue,
         centerTitle: true,
-        // NEW: Removed 'actions' (refresh button)
       ),
-      // NEW: The Drawer (Hamburger Menu) for future navigation
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -167,35 +227,20 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('About'),
-              onTap: () { /* Navigate to About */ },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('For Teachers'),
-              onTap: () { /* Navigate to Teachers */ },
-            ),
-            ListTile(
-              leading: const Icon(Icons.list_alt),
-              title: const Text('Vocabulary List'),
-              onTap: () { /* Navigate to Vocab */ },
-            ),
+            ListTile(leading: const Icon(Icons.info_outline), title: const Text('About'), onTap: () { }),
+            ListTile(leading: const Icon(Icons.people_outline), title: const Text('For Teachers'), onTap: () { }),
+            ListTile(leading: const Icon(Icons.list_alt), title: const Text('Vocabulary List'), onTap: () { }),
           ],
         ),
       ),
       body: Stack(
         children: [
-          // LAYER 1: Game Content
           Column(
             children: [
-              // HISTORY AREA
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start, 
                   children: [
-                    // LEGEND
                     Container(
                       width: 80,
                       color: Colors.grey[100],
@@ -210,38 +255,31 @@ class _GameScreenState extends State<GameScreen> {
                         ],
                       ),
                     ),
-                    // LEFT COLUMN
                     Expanded(
                       child: Container(
                         color: AppColors.backgroundGray,
                         padding: const EdgeInsets.only(top: 20, left: 10, right: 5),
-                        child: Column(
-                          children: leftColumn.map((guess) => _buildPastGuessRow(guess)).toList(),
-                        ),
+                        child: Column(children: leftColumn.map((guess) => _buildPastGuessRow(guess)).toList()),
                       ),
                     ),
-                    // RIGHT COLUMN
                     Expanded(
                       child: Container(
                         color: AppColors.backgroundGray,
                         padding: const EdgeInsets.only(top: 20, left: 5, right: 10),
-                        child: Column(
-                          children: rightColumn.map((guess) => _buildPastGuessRow(guess)).toList(),
-                        ),
+                        child: Column(children: rightColumn.map((guess) => _buildPastGuessRow(guess)).toList()),
                       ),
                     ),
                   ],
                 ),
               ),
               
-             // NEW: ACTIVE INPUT AREA with TEXT BUTTON
+              // ACTIVE INPUT AREA
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 color: Colors.white,
                 child: Stack(
                   alignment: Alignment.center, 
                   children: [
-                    // 1. The Input Boxes (Centered)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -253,29 +291,24 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
                     
-                    // 2. The "NEXT GAME" Button (Pinned to the Right)
+                    // NEW: BUTTON CALLS _onNewGameTap NOW
                     Positioned(
-                      right: 0,
+                      left: 0,
                       child: SizedBox(
-                        height: 45, // Matches the chunky feel of the app
+                        height: 45, 
                         child: ElevatedButton(
-                          onPressed: _startNewGame,
+                          onPressed: _onNewGameTap, // <--- CHANGED THIS
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.techBlue, // Brand Blue
-                            foregroundColor: Colors.white, // White Text
+                            backgroundColor: AppColors.techBlue, 
+                            foregroundColor: Colors.white, 
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            elevation: 2, // Slight shadow for 3D effect
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            elevation: 2, 
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: const Text(
-                            "NEXT\nGAME", // Uses a line break to save horizontal space!
+                            "NEXT\nGAME", 
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              fontSize: 12, // Keeps it legible but compact
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ),
                       ),
@@ -284,7 +317,6 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
               
-              // KEYBOARD
               Container(
                 decoration: const BoxDecoration(
                   color: AppColors.cautionAmber,
@@ -298,7 +330,6 @@ class _GameScreenState extends State<GameScreen> {
             ],
           ),
 
-          // LAYER 2: WIN ANIMATION
           IgnorePointer(
             ignoring: !showWinAnimation,
             child: AnimatedOpacity(
@@ -319,15 +350,32 @@ class _GameScreenState extends State<GameScreen> {
                     children: const [
                       Icon(Icons.star, color: AppColors.cautionAmber, size: 60),
                       SizedBox(height: 10),
-                      Text(
-                        "YES!",
-                        style: TextStyle(
-                          fontSize: 50, 
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.techBlue
-                        ),
-                      ),
+                      Text("YES!", style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold, color: AppColors.techBlue)),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          IgnorePointer(
+            ignoring: !showFeedback,
+            child: AnimatedOpacity(
+              opacity: showFeedback ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: Container(
+                alignment: Alignment.center,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cautionAmber, width: 5),
+                    boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0,4))]
+                  ),
+                  child: Text(
+                    feedbackMessage,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textBlack),
                   ),
                 ),
               ),
@@ -351,12 +399,10 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildPastGuessRow(String word) {
     List<TileStatus> statuses = _getStatusesForGuess(word, targetWord);
     List<Widget> tiles = [];
-    
     for (int i = 0; i < word.length; i++) {
       tiles.add(StatusTile(letter: word[i], status: statuses[i], size: 35)); 
       tiles.add(const SizedBox(width: 8)); 
     }
-    
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0), 
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: tiles),
@@ -366,23 +412,14 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildActiveBox(int index) {
     String letter = "";
     if (index < currentGuess.length) letter = currentGuess[index];
-
     return Container(
-      width: 60,
-      height: 60,
-      alignment: Alignment.center,
+      width: 60, height: 60, alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(
-          color: letter.isEmpty ? Colors.grey : AppColors.techBlue,
-          width: 2,
-        ),
+        border: Border.all(color: letter.isEmpty ? Colors.grey : AppColors.techBlue, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        letter,
-        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textBlack),
-      ),
+      child: Text(letter, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textBlack)),
     );
   }
 }
