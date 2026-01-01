@@ -234,12 +234,12 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
               
-              // NEW: ACTIVE INPUT AREA with BUTTON
+             // NEW: ACTIVE INPUT AREA with TEXT BUTTON
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 color: Colors.white,
                 child: Stack(
-                  alignment: Alignment.center, // Keeps the boxes in the middle
+                  alignment: Alignment.center, 
                   children: [
                     // 1. The Input Boxes (Centered)
                     Row(
@@ -253,15 +253,31 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
                     
-                    // 2. The New Game Button ( pinned to the Right)
+                    // 2. The "NEXT GAME" Button (Pinned to the Right)
                     Positioned(
                       right: 0,
-                      child: IconButton(
-                        onPressed: _startNewGame,
-                        // A clean "Next" arrow icon
-                        icon: const Icon(Icons.arrow_circle_right_outlined, size: 40),
-                        color: AppColors.techBlue,
-                        tooltip: "New Game",
+                      child: SizedBox(
+                        height: 45, // Matches the chunky feel of the app
+                        child: ElevatedButton(
+                          onPressed: _startNewGame,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.techBlue, // Brand Blue
+                            foregroundColor: Colors.white, // White Text
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            elevation: 2, // Slight shadow for 3D effect
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "NEXT\nGAME", // Uses a line break to save horizontal space!
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 12, // Keeps it legible but compact
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
