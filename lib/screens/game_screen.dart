@@ -358,8 +358,8 @@ class _GameScreenState extends State<GameScreen> {
               opacity: showWinAnimation ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 500),
               child: Container(
-                color: Colors.black.withOpacity(0.4),
-                alignment: Alignment.center,
+              color: Colors.black.withValues(alpha: 0.4),
+                             alignment: Alignment.center,
                 child: Container(
                   padding: const EdgeInsets.all(30),
                   decoration: BoxDecoration(

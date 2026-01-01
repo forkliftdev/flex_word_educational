@@ -14,7 +14,7 @@ class FlexWordApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoRouter _router = GoRouter(
+    final GoRouter router = GoRouter(
       routes: [
         // ROUTE 1: The Game (Home)
         GoRoute(
@@ -64,7 +64,7 @@ class FlexWordApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.backgroundGray,
         useMaterial3: true,
       ),
-      routerConfig: _router,
+      routerConfig: router,
     );
   }
 }
