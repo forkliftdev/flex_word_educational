@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // NEW IMPORT
+import 'package:go_router/go_router.dart';
 import 'constants/app_colors.dart';
 import 'screens/game_screen.dart';
+import 'screens/about_screen.dart'; // NEW IMPORT
 
 void main() {
   runApp(const FlexWordApp());
@@ -12,34 +13,37 @@ class FlexWordApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SETUP THE ROUTER
     final GoRouter _router = GoRouter(
       routes: [
+        // ROUTE 1: The Game (Home)
         GoRoute(
           path: '/',
           builder: (context, state) {
-            // 1. LISTEN: Check for 'list' in the URL (e.g. ?list=CAT,DOG)
             final String? rawList = state.uri.queryParameters['list'];
-            
             List<String>? teacherList;
 
-            // 2. PARSE: If we found a list, clean it up!
             if (rawList != null && rawList.isNotEmpty) {
               teacherList = rawList
-                  .split(',') // Split by comma
-                  .map((e) => e.trim().toUpperCase()) // Remove spaces, make CAPS
-                  .where((e) => e.length == 3) // Only allow 3-letter words
+                  .split(',') 
+                  .map((e) => e.trim().toUpperCase()) 
+                  .where((e) => e.length == 3) 
                   .toList();
             }
-
-            // 3. LAUNCH: Pass the list (if it exists) to the GameScreen
             return GameScreen(teacherList: teacherList);
+          },
+        ),
+
+        // ROUTE 2: About Page (NEW!)
+        GoRoute(
+          path: '/about',
+          builder: (context, state) {
+            return const AboutScreen();
           },
         ),
       ],
     );
 
-    return MaterialApp.router( // CHANGED TO .router
+    return MaterialApp.router(
       title: 'FlexWord Educational',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -47,7 +51,7 @@ class FlexWordApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.backgroundGray,
         useMaterial3: true,
       ),
-      routerConfig: _router, // CONNECT THE ROUTER
+      routerConfig: _router,
     );
   }
 }

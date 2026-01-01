@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../constants/game_words.dart';
 import '../widgets/custom_keyboard.dart';
 import '../widgets/status_tile.dart';
+import 'package:go_router/go_router.dart';
 
 class GameScreen extends StatefulWidget {
   // Accept an optional list from the URL (passed from main.dart)
@@ -243,7 +244,8 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-            ListTile(leading: const Icon(Icons.info_outline), title: const Text('About'), onTap: () { }),
+            ListTile(leading: const Icon(Icons.info_outline), title: const Text('About'), onTap: () {Navigator.pop(context); // Close the drawer first
+                context.push('/about');},), // Go to the page}),
             ListTile(leading: const Icon(Icons.people_outline), title: const Text('For Teachers'), onTap: () { }),
             ListTile(leading: const Icon(Icons.list_alt), title: const Text('Vocabulary List'), onTap: () { }),
           ],
