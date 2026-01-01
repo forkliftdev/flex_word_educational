@@ -25,7 +25,7 @@ class CustomKeyboard extends StatelessWidget {
           // Row 2
           _buildRow(['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']),
           
-          // Row 3: SWAPPED! DEL is now first, ENTER is last.
+          // Row 3: DEL (Back) on Left, ENTER on Right
           _buildRow(['DEL', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER']),
           
           // Row 4: Placeholder Key
@@ -53,7 +53,6 @@ class CustomKeyboard extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: keys.map((key) {
-        // Determine width (Enter/Del are wider)
         int flex = (key == 'ENTER' || key == 'DEL') ? 2 : 1;
         
         return Expanded(
@@ -71,10 +70,9 @@ class CustomKeyboard extends StatelessWidget {
   }
 
   Widget _buildKeyButton(String key) {
-    // 1. Get status
     TileStatus status = keyStatuses[key] ?? TileStatus.initial;
 
-    // Special case for Enter/Del
+    // Special handling for Functional Keys
     if (key == 'ENTER' || key == 'DEL') {
        return ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -84,13 +82,15 @@ class CustomKeyboard extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () => onKeyPressed(key),
-          child: key == 'DEL' 
-            ? const Icon(Icons.backspace_outlined) 
-            : const Icon(Icons.check_circle_outline, color: AppColors.correctGreen),
+          // LOGIC CHANGE: Check for both keys and return TEXT for both
+          child: Text(
+            key == 'ENTER' ? "ENTER" : "BACK", 
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
        );
     }
 
-    // 2. For Letters
+    // Standard Letter Keys
     return StatusTile(
       letter: key,
       status: status,

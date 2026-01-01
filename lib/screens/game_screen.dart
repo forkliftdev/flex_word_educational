@@ -7,7 +7,10 @@ import '../widgets/custom_keyboard.dart';
 import '../widgets/status_tile.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  // Accept an optional list from the URL (passed from main.dart)
+  final List<String>? teacherList;
+
+  const GameScreen({super.key, this.teacherList});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -34,8 +37,21 @@ class _GameScreenState extends State<GameScreen> {
   // LOGIC: The actual reset mechanism
   void _startNewGame() {
     setState(() {
-      final randomIndex = Random().nextInt(GameWords.allTargets.length);
-      targetWord = GameWords.allTargets[randomIndex];
+      // LOGIC UPGRADE: Choose the Source Pool
+      List<String> pool;
+      
+      // 1. Is there a valid Teacher List?
+      if (widget.teacherList != null && widget.teacherList!.isNotEmpty) {
+        pool = widget.teacherList!;
+        print("USING TEACHER LIST: $pool"); 
+      } else {
+        // 2. Fallback to standard game
+        pool = GameWords.allTargets;
+        print("USING STANDARD LIST");
+      }
+
+      final randomIndex = Random().nextInt(pool.length);
+      targetWord = pool[randomIndex];
       
       currentGuess = "";
       pastGuesses = [];
@@ -49,7 +65,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // NEW: The "Bouncer" that decides if we need a confirmation dialog
+  // LOGIC: The "Bouncer" that decides if we need a confirmation dialog
   void _onNewGameTap() {
     // 1. If they already won, OR haven't guessed anything yet, just restart immediately.
     if (isGameWon || pastGuesses.isEmpty) {
@@ -291,13 +307,13 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
                     
-                    // NEW: BUTTON CALLS _onNewGameTap NOW
+                    // BUTTON CALLS _onNewGameTap NOW
                     Positioned(
                       left: 0,
                       child: SizedBox(
                         height: 45, 
                         child: ElevatedButton(
-                          onPressed: _onNewGameTap, // <--- CHANGED THIS
+                          onPressed: _onNewGameTap,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.techBlue, 
                             foregroundColor: Colors.white, 
@@ -423,3 +439,4 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 }
+// END OF FILE
