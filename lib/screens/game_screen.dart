@@ -39,25 +39,17 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // LOGIC UPDATE: We use the smart helper to update the keyboard
+  // LOGIC: Two-Pass Grading System
   void _checkGuess() {
-    // We get the smart statuses for this specific guess
     List<TileStatus> statuses = _getStatusesForGuess(currentGuess, targetWord);
 
-    // Update Keyboard based on these results
     for (int i = 0; i < 3; i++) {
       String letter = currentGuess[i];
       TileStatus currentStatus = statuses[i];
 
-      // Logic: Only upgrade status (Wrong -> Close -> Correct)
-      // If keyboard is already Green, don't turn it Yellow.
       if (!keyStatuses.containsKey(letter) || 
           (keyStatuses[letter] == TileStatus.wrong && currentStatus != TileStatus.wrong) ||
           (keyStatuses[letter] == TileStatus.close && currentStatus == TileStatus.correct)) {
-        
-        // Note: For the keyboard, if a letter appears TWICE in a guess (one yellow, one gray),
-        // we want the keyboard to show the BEST version (Yellow).
-        // The logic above handles this naturally.
         keyStatuses[letter] = currentStatus;
       }
     }
@@ -72,29 +64,28 @@ class _GameScreenState extends State<GameScreen> {
     currentGuess = "";
   }
 
-  // NEW HELPER: The "Two-Pass" Logic System
   List<TileStatus> _getStatusesForGuess(String guess, String target) {
     List<TileStatus> results = List.filled(3, TileStatus.wrong);
     List<String> targetChars = target.split('');
     List<String> guessChars = guess.split('');
 
-    // PASS 1: Find Exact Matches (Green/Circle)
+    // PASS 1: Exact Matches
     for (int i = 0; i < 3; i++) {
       if (guessChars[i] == targetChars[i]) {
         results[i] = TileStatus.correct;
-        targetChars[i] = ''; // Remove from pool so it can't be matched again
-        guessChars[i] = '#'; // Mark guess as handled
+        targetChars[i] = ''; 
+        guessChars[i] = '#'; 
       }
     }
 
-    // PASS 2: Find Close Matches (Yellow/Triangle)
+    // PASS 2: Close Matches
     for (int i = 0; i < 3; i++) {
-      if (guessChars[i] == '#') continue; // Skip already handled greens
+      if (guessChars[i] == '#') continue; 
 
       int indexInTarget = targetChars.indexOf(guessChars[i]);
       if (indexInTarget != -1) {
         results[i] = TileStatus.close;
-        targetChars[indexInTarget] = ''; // Remove this specific instance from pool
+        targetChars[indexInTarget] = ''; 
       }
     }
 
@@ -140,8 +131,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // PREPARE THE SPLIT LISTS
-    // 8 items for the left column
+    // Split Logic for 2-Column Layout
     int splitIndex = 8;
     List<String> leftColumn = [];
     List<String> rightColumn = [];
@@ -158,21 +148,54 @@ class _GameScreenState extends State<GameScreen> {
         title: const Text("FlexWord Educational", style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.techBlue,
         centerTitle: true,
-        actions: [
-           IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _startNewGame)
-        ],
+        // NEW: Removed 'actions' (refresh button)
+      ),
+      // NEW: The Drawer (Hamburger Menu) for future navigation
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: AppColors.techBlue),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.school, color: Colors.white, size: 40),
+                  SizedBox(height: 10),
+                  Text("FlexWord Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('About'),
+              onTap: () { /* Navigate to About */ },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('For Teachers'),
+              onTap: () { /* Navigate to Teachers */ },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list_alt),
+              title: const Text('Vocabulary List'),
+              onTap: () { /* Navigate to Vocab */ },
+            ),
+          ],
+        ),
       ),
       body: Stack(
         children: [
           // LAYER 1: Game Content
           Column(
             children: [
-              // HISTORY AREA (Updated Layout)
+              // HISTORY AREA
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start, 
                   children: [
-                    // LEGEND SIDEBAR
+                    // LEGEND
                     Container(
                       width: 80,
                       color: Colors.grey[100],
@@ -187,8 +210,7 @@ class _GameScreenState extends State<GameScreen> {
                         ],
                       ),
                     ),
-                    
-                    // LEFT COLUMN (0-7)
+                    // LEFT COLUMN
                     Expanded(
                       child: Container(
                         color: AppColors.backgroundGray,
@@ -198,12 +220,10 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
                     ),
-
-                    // RIGHT COLUMN (8+)
+                    // RIGHT COLUMN
                     Expanded(
                       child: Container(
                         color: AppColors.backgroundGray,
-                         // Add padding to separate from the right edge
                         padding: const EdgeInsets.only(top: 20, left: 5, right: 10),
                         child: Column(
                           children: rightColumn.map((guess) => _buildPastGuessRow(guess)).toList(),
@@ -214,18 +234,36 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
               
-              // ACTIVE INPUT AREA
+              // NEW: ACTIVE INPUT AREA with BUTTON
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 color: Colors.white,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
+                  alignment: Alignment.center, // Keeps the boxes in the middle
                   children: [
-                    _buildActiveBox(0),
-                    const SizedBox(width: 10),
-                    _buildActiveBox(1),
-                    const SizedBox(width: 10),
-                    _buildActiveBox(2),
+                    // 1. The Input Boxes (Centered)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildActiveBox(0),
+                        const SizedBox(width: 10),
+                        _buildActiveBox(1),
+                        const SizedBox(width: 10),
+                        _buildActiveBox(2),
+                      ],
+                    ),
+                    
+                    // 2. The New Game Button ( pinned to the Right)
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        onPressed: _startNewGame,
+                        // A clean "Next" arrow icon
+                        icon: const Icon(Icons.arrow_circle_right_outlined, size: 40),
+                        color: AppColors.techBlue,
+                        tooltip: "New Game",
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -295,16 +333,14 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildPastGuessRow(String word) {
-    // NEW: Use the smart helper to determine colors for display
     List<TileStatus> statuses = _getStatusesForGuess(word, targetWord);
     List<Widget> tiles = [];
     
     for (int i = 0; i < word.length; i++) {
       tiles.add(StatusTile(letter: word[i], status: statuses[i], size: 35)); 
-      tiles.add(const SizedBox(width: 8)); // Tighter spacing
+      tiles.add(const SizedBox(width: 8)); 
     }
     
-    // Tighter vertical spacing for the row
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0), 
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: tiles),
