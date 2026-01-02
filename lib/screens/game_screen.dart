@@ -44,11 +44,11 @@ class _GameScreenState extends State<GameScreen> {
       // 1. Is there a valid Teacher List?
       if (widget.teacherList != null && widget.teacherList!.isNotEmpty) {
         pool = widget.teacherList!;
-        print("USING TEACHER LIST: $pool"); 
+        debugPrint("USING TEACHER LIST: $pool"); 
       } else {
         // 2. Fallback to standard game
         pool = GameWords.allTargets;
-        print("USING STANDARD LIST");
+        debugPrint("USING STANDARD LIST");
       }
 
       final randomIndex = Random().nextInt(pool.length);
@@ -62,7 +62,7 @@ class _GameScreenState extends State<GameScreen> {
       showFeedback = false; 
       isGameWon = false; 
       
-      print("TARGET WORD IS: $targetWord");
+      debugPrint("TARGET WORD IS: $targetWord");
     });
   }
 
@@ -123,7 +123,7 @@ class _GameScreenState extends State<GameScreen> {
     pastGuesses.add(currentGuess);
     
     if (currentGuess == targetWord) {
-      print("WINNER!"); 
+      debugPrint("WINNER!"); 
       isGameWon = true;
       _triggerWinAnimation();
     }
