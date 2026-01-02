@@ -21,12 +21,21 @@ class FlexWordApp extends StatelessWidget {
           path: '/',
           builder: (context, state) {
             List<String>? teacherList;
+            String? fixedMiddle;
+            String? listTitle; // NEW VARIABLE
 
-            // CHECK 1: Did we come from the Teacher Dashboard? (Internal Data)
-            if (state.extra != null && state.extra is List<String>) {
-              teacherList = state.extra as List<String>;
+            // CASE 1: Internal Navigation (From Teacher Dashboard)
+            if (state.extra != null) {
+              if (state.extra is Map) {
+                final map = state.extra as Map;
+                teacherList = map['list'] as List<String>;
+                fixedMiddle = map['middle'] as String?;
+                listTitle = map['title'] as String?; // EXTRACT TITLE
+              } else if (state.extra is List<String>) {
+                teacherList = state.extra as List<String>;
+              }
             } 
-            // CHECK 2: Did we come from a URL Link? (External Data)
+            // CASE 2: External Link (URL)
             else {
               final String? rawList = state.uri.queryParameters['list'];
               if (rawList != null && rawList.isNotEmpty) {
@@ -35,10 +44,15 @@ class FlexWordApp extends StatelessWidget {
                     .map((e) => e.trim().toUpperCase()) 
                     .where((e) => e.length == 3) 
                     .toList();
+                listTitle = "Custom List"; // Give URL lists a generic name
               }
             }
 
-            return GameScreen(teacherList: teacherList);
+            return GameScreen(
+              teacherList: teacherList,
+              fixedMiddle: fixedMiddle,
+              listTitle: listTitle, // PASS IT ALONG
+            );
           },
         ),
 

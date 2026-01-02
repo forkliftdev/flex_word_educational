@@ -1,17 +1,23 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../constants/game_words.dart';
 import '../widgets/custom_keyboard.dart';
 import '../widgets/status_tile.dart';
-import 'package:go_router/go_router.dart';
 
 class GameScreen extends StatefulWidget {
-  // Accept an optional list from the URL (passed from main.dart)
   final List<String>? teacherList;
+  final String? fixedMiddle; 
+  final String? listTitle; // NEW: The name of the current lesson
 
-  const GameScreen({super.key, this.teacherList});
+  const GameScreen({
+    super.key, 
+    this.teacherList, 
+    this.fixedMiddle,
+    this.listTitle, 
+  });
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -23,7 +29,6 @@ class _GameScreenState extends State<GameScreen> {
   List<String> pastGuesses = []; 
   Map<String, TileStatus> keyStatuses = {};
   
-  // STATES
   bool isGameWon = false; 
   bool showWinAnimation = false;
   bool showFeedback = false;
@@ -35,20 +40,16 @@ class _GameScreenState extends State<GameScreen> {
     _startNewGame();
   }
 
-  // LOGIC: The actual reset mechanism
   void _startNewGame() {
     setState(() {
-      // LOGIC UPGRADE: Choose the Source Pool
       List<String> pool;
       
-      // 1. Is there a valid Teacher List?
       if (widget.teacherList != null && widget.teacherList!.isNotEmpty) {
         pool = widget.teacherList!;
-        debugPrint("USING TEACHER LIST: $pool"); 
+        print("USING TEACHER LIST"); 
       } else {
-        // 2. Fallback to standard game
         pool = GameWords.allTargets;
-        debugPrint("USING STANDARD LIST");
+        print("USING STANDARD LIST");
       }
 
       final randomIndex = Random().nextInt(pool.length);
@@ -62,19 +63,16 @@ class _GameScreenState extends State<GameScreen> {
       showFeedback = false; 
       isGameWon = false; 
       
-      debugPrint("TARGET WORD IS: $targetWord");
+      print("TARGET WORD IS: $targetWord");
     });
   }
 
-  // LOGIC: The "Bouncer" that decides if we need a confirmation dialog
   void _onNewGameTap() {
-    // 1. If they already won, OR haven't guessed anything yet, just restart immediately.
     if (isGameWon || pastGuesses.isEmpty) {
       _startNewGame();
       return;
     }
 
-    // 2. Otherwise, they are in the middle of a game. Confirm!
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -83,20 +81,18 @@ class _GameScreenState extends State<GameScreen> {
           title: const Text("Start New Game?", style: TextStyle(color: AppColors.techBlue, fontWeight: FontWeight.bold)),
           content: const Text("You will lose your current guesses."),
           actions: [
-            // The "No" button (Cancel)
             TextButton(
               onPressed: () => Navigator.of(context).pop(), 
               child: const Text("Keep Playing", style: TextStyle(color: Colors.grey, fontSize: 16)),
             ),
-            // The "Yes" button (Action)
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.cautionAmber,
                 foregroundColor: AppColors.textBlack,
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                _startNewGame(); // Actually reset
+                Navigator.of(context).pop(); 
+                _startNewGame(); 
               }, 
               child: const Text("Start Over", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
@@ -123,7 +119,7 @@ class _GameScreenState extends State<GameScreen> {
     pastGuesses.add(currentGuess);
     
     if (currentGuess == targetWord) {
-      debugPrint("WINNER!"); 
+      print("WINNER!"); 
       isGameWon = true;
       _triggerWinAnimation();
     }
@@ -204,7 +200,18 @@ class _GameScreenState extends State<GameScreen> {
           currentGuess = currentGuess.substring(0, currentGuess.length - 1);
         }
       } else {
-        if (currentGuess.length < 3) currentGuess += key;
+        if (currentGuess.length < 3) {
+          if (currentGuess.length == 1 && widget.fixedMiddle != null) {
+            if (key == widget.fixedMiddle) {
+              currentGuess += key; 
+            } else {
+              _triggerFeedback("Use '${widget.fixedMiddle}'");
+            }
+          } 
+          else {
+            currentGuess += key;
+          }
+        }
       }
     });
   }
@@ -244,11 +251,20 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-            ListTile(leading: const Icon(Icons.info_outline), title: const Text('About'), onTap: () {Navigator.pop(context); // Close the drawer first
-                context.push('/about');},), // Go to the page}),
-            ListTile(leading: const Icon(Icons.people_outline), title: const Text('For Teachers'), onTap: () {
-                Navigator.pop(context); // Close drawer
-                context.push('/teacher'); // Go to dashboard
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('About'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/about');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('For Teachers'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/teacher');
               },
             ),
             ListTile(leading: const Icon(Icons.list_alt), title: const Text('Vocabulary List'), onTap: () { }),
@@ -302,18 +318,37 @@ class _GameScreenState extends State<GameScreen> {
                 child: Stack(
                   alignment: Alignment.center, 
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildActiveBox(0),
-                        const SizedBox(width: 10),
-                        _buildActiveBox(1),
-                        const SizedBox(width: 10),
-                        _buildActiveBox(2),
-                      ],
+                    
+                    // NEW: The "Zone" Title (Positioned above the input boxes)
+                    if (widget.listTitle != null)
+                      Positioned(
+                        top: 0,
+                        child: Text(
+                          widget.listTitle!,
+                          style: const TextStyle(
+                            color: AppColors.techBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+
+                    // INPUT BOXES (Pushed down slightly to make room for title)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0), 
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildActiveBox(0),
+                          const SizedBox(width: 10),
+                          _buildActiveBox(1),
+                          const SizedBox(width: 10),
+                          _buildActiveBox(2),
+                        ],
+                      ),
                     ),
                     
-                    // BUTTON CALLS _onNewGameTap NOW
                     Positioned(
                       left: 0,
                       child: SizedBox(
@@ -358,8 +393,8 @@ class _GameScreenState extends State<GameScreen> {
               opacity: showWinAnimation ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 500),
               child: Container(
-              color: Colors.black.withValues(alpha: 0.4),
-                             alignment: Alignment.center,
+                color: Colors.black45,
+                alignment: Alignment.center,
                 child: Container(
                   padding: const EdgeInsets.all(30),
                   decoration: BoxDecoration(
@@ -434,15 +469,28 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildActiveBox(int index) {
     String letter = "";
     if (index < currentGuess.length) letter = currentGuess[index];
+
+    bool isGhost = false;
+    if (letter.isEmpty && index == 1 && widget.fixedMiddle != null) {
+      letter = widget.fixedMiddle!;
+      isGhost = true;
+    }
+
     return Container(
       width: 60, height: 60, alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isGhost ? Colors.grey[200] : Colors.white,
         border: Border.all(color: letter.isEmpty ? Colors.grey : AppColors.techBlue, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(letter, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textBlack)),
+      child: Text(
+        letter,
+        style: TextStyle(
+          fontSize: 32, 
+          fontWeight: FontWeight.bold, 
+          color: isGhost ? Colors.grey[400] : AppColors.textBlack
+        ),
+      ),
     );
   }
 }
-// END OF FILE

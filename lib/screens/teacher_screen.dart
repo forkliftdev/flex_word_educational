@@ -79,9 +79,21 @@ class TeacherScreen extends StatelessWidget {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
                         onTap: () {
-                           // 4. AUTO-RESET: context.go builds a fresh GameScreen with this list
-                           context.go('/', extra: wordList);
-                        },
+         // CHECK: Does this category imply a fixed middle letter?
+                          String? fixedMiddle;
+                          if (title.contains("Short A")) fixedMiddle = 'A';
+                           else if (title.contains("Short E")) fixedMiddle = 'E';
+                           else if (title.contains("Short I")) fixedMiddle = 'I';
+                           else if (title.contains("Short O")) fixedMiddle = 'O';
+                           else if (title.contains("Short U")) fixedMiddle = 'U';
+
+         // SEND: Pack it all up
+context.go('/', extra: {
+  'list': wordList,
+  'middle': fixedMiddle,
+  'title': title, // <--- NEW: Send the name of the list!
+});
+},
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           child: Row(
