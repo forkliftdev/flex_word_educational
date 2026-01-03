@@ -4,7 +4,7 @@ import 'constants/app_colors.dart';
 import 'screens/game_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/teacher_screen.dart'; // NEW IMPORT (We will create this next)
-
+import 'screens/vocabulary_screen.dart'; // NEW IMPORT
 void main() {
   runApp(const FlexWordApp());
 }
@@ -66,6 +66,10 @@ class FlexWordApp extends StatelessWidget {
         GoRoute(
           path: '/teacher',
           builder: (context, state) => const TeacherScreen(),
+        ),
+        GoRoute(
+          path: '/vocabulary',
+          builder: (context, state) => const VocabularyScreen(),
         ),
       ],
     );

@@ -11,7 +11,7 @@ class AboutScreen extends StatelessWidget {
         title: const Text("About FlexWord", style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.techBlue,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white), // Makes back arrow white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -36,6 +36,33 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
+            // --- NEW: THE VENN DIAGRAM ---
+            Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400), // Keeps it from getting huge on tablets
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/FlexWord_Word_Lists_Venn.jpg',
+                    fit: BoxFit.contain, // Ensures the whole circle is visible
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Center(
+              child: Text(
+                "The 'Bouncer' System: Broad Guesses, Specific Answers",
+                style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+              ),
+            ),
+            const SizedBox(height: 30),
+            // -----------------------------
+
             // LEGEND EXPLANATION
             const Text(
               "How to Read the Shapes:",
@@ -51,7 +78,6 @@ class AboutScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
             
-            // DIVIDER
             const Divider(),
             const SizedBox(height: 20),
 

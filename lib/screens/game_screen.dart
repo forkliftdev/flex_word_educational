@@ -267,7 +267,15 @@ class _GameScreenState extends State<GameScreen> {
                 context.push('/teacher');
               },
             ),
-            ListTile(leading: const Icon(Icons.list_alt), title: const Text('Vocabulary List'), onTap: () { }),
+            ListTile(
+              leading: const Icon(Icons.list_alt),
+              title: const Text('Vocabulary List'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                context.push('/vocabulary'); // Go to list page
+              },
+            ),
+
           ],
         ),
       ),
