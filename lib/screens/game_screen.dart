@@ -218,8 +218,12 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int splitIndex = 8;
-    List<String> leftColumn = [];
+// Get the total screen height
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // If the screen is short (less than 700 pixels), only show 5 rows before splitting.
+    // If it's tall, we can afford 8 rows.
+    int splitIndex = screenHeight < 700 ? 5 : 8;    List<String> leftColumn = [];
     List<String> rightColumn = [];
 
     if (pastGuesses.length <= splitIndex) {
