@@ -1,5 +1,7 @@
 FlexWord Educational
 
+The game is live!! You can read about it later. [Go try it!] (https://forkliftdev.github.io/flex_word_educational/)  If that link doesn't work for you, copy this address: https://forkliftdev.github.io/flex_word_educational/
+
 This project started as a side quest. I thrive at side quests (I've played most all Assasin Creed instalments, but have only finished one.).
 
 My main quest is to make a word game that has been rattling around in my head for something like twenty-five years. While digging into other word games for inspiration, I stumbled across a huge number of clones of a certain extremely popular game that I will politely avoid naming here. You probably know the one. A designer named Josh Wardle made it, then sold it to The New York Times. Its core loop and design simple enough that it became a go-to project for people learning to code.
@@ -12,4 +14,4 @@ While reading through comments on one of the clones, I noticed something interes
 
 So that is how FlexWord Education came to be.
 
-Have feedback? I would love to hear from you. Send me an email at forklift2flutter@gmail you know the rest.
+Have feedback? I would love to hear from you. Send me, Chris, an email at forklift2flutter@gmail you know the rest.
