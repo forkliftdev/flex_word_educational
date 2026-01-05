@@ -1,9 +1,7 @@
 FlexWord Educational
 
 The game is live!! You can read about it later. 
- <a href="[https://github.com](https://forkliftdev.github.io/flex_word_educational/)" target="_blank">This link</a>
- will open it in a new tab. 
-If that link doesn't work for you, copy this address: https://forkliftdev.github.io/flex_word_educational/
+Go try it!!! https://forkliftdev.github.io/flex_word_educational/
 
 This project started as a side quest. I thrive at side quests (I've played most all Assasin Creed instalments, but have only finished one.).
 
