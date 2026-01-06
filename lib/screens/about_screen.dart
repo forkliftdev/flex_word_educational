@@ -31,7 +31,7 @@ class AboutScreen extends StatelessWidget {
             
             // INTRO TEXT
             const Text(
-              "FlexWord Educational is designed specifically for K-1 students to practice phonics, spelling, and sight words in a safe, frustration-free environment.",
+              "FlexWord Educational is designed specifically for K-1 students, or other English learners, to practice phonics, spelling, and sight words in a safe, frustration-free environment.",
               style: TextStyle(fontSize: 16, height: 1.5),
             ),
             const SizedBox(height: 30),
